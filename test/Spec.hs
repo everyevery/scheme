@@ -62,6 +62,16 @@ evalSpec = do
       evalStringOne env "#(1 'foo \"bar\")"  `shouldReturn`
         (Right $ Vector $ IArray.listArray (0, 2) [Number 1, List [Atom "quote", Atom "foo"], String "bar"])
 
+  describe "make-vector" $ do
+    it "creates a newly allocated vector of length k" $ do
+      env <- newEnv
+      evalStringOne env "(make-vector 0)" `shouldReturn` (Right $ Vector $ IArray.listArray (0, -1) [])
+      evalStringOne env "(make-vector 2)" `shouldReturn` (Right $ Vector $ IArray.listArray (0, 1) [Bool False, Bool False])
+    it "if value is given, then all elements of the vector are initialized to the given value" $ do
+      env <- newEnv
+      evalStringOne env "(make-vector 0 1)" `shouldReturn` (Right $ Vector $ IArray.listArray (0, -1) [])
+      evalStringOne env "(make-vector 2 1)" `shouldReturn` (Right $ Vector $ IArray.listArray (0, 1) [Number 1, Number 1])
+
   describe "begin" $ do
     it "evaluates begin expressions sequentially from left to right" $ do
       env <- newEnv
