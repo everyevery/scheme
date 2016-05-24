@@ -11,6 +11,7 @@ import           Data.CaseInsensitive  ( CI )
 import qualified Data.CaseInsensitive as CI
 import Data.Char ( toUpper, toLower, isAlpha, isDigit
                  , isUpper, isLower, isSpace, ord, chr )
+import Data.List (genericReplicate)
 import System.IO
 
 import Language.Scheme.Reader
@@ -360,6 +361,7 @@ primitives = [("+", numericBinop (+)),
               ("char?", isChar),
               ("string?", isString),
               ("substring", substring),
+              ("make-string", makeString),
               ("vector?", isVector),
               ("vector->list", vectorToList),
               ("list->vector", listToVector),
@@ -420,3 +422,11 @@ display = \case
   [val]       -> liftIO $ putStr (show val) >> pure Unspecified
   badArgList  -> throwError $ NumArgs 1 badArgList
 
+
+makeString :: [LispVal] -> ThrowsError LispVal
+makeString = \case
+  [Number n]         -> return $ String $ genericReplicate n ' '
+  [Number n, Char c] -> return $ String $ genericReplicate n c
+  [badArg]           -> throwError $ TypeMismatch "number" badArg
+  [_, badArg]           -> throwError $ TypeMismatch "char" badArg
+  badArgList         -> throwError $ NumArgs 1 badArgList
