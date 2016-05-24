@@ -11,6 +11,7 @@ import           Data.CaseInsensitive  ( CI )
 import qualified Data.CaseInsensitive as CI
 import Data.Char ( toUpper, toLower, isAlpha, isDigit
                  , isUpper, isLower, isSpace, ord, chr )
+import Data.List (genericReplicate)
 import System.IO
 
 import Language.Scheme.Reader
@@ -386,6 +387,7 @@ primitives = [("+", numericBinop (+)),
               ("vector?", isVector),
               ("vector->list", vectorToList),
               ("list->vector", listToVector),
+              ("make-vector", makeVector),
               ("port?", isPort),
               ("procedure?", isProcedure)]
 
@@ -455,3 +457,10 @@ display = \case
   [val]       -> liftIO $ putStr (show val) >> pure Unspecified
   badArgList  -> throwError $ NumArgs 1 badArgList
 
+makeVector :: [LispVal] -> ThrowsError LispVal
+makeVector = \case
+  [Number n]      -> pure . Vector $ IArray.listArray (0, fromIntegral (n-1)) $ genericReplicate n $ Bool False
+  [Number n, val] -> pure . Vector $ IArray.listArray (0, fromIntegral (n-1)) $ genericReplicate n val
+  [badArg]        -> throwError $ TypeMismatch "number" badArg
+  [_, badArg]     -> throwError $ TypeMismatch "lispVal" badArg
+  badArgList      -> throwError $ NumArgs 1 badArgList
